@@ -28,7 +28,7 @@ jobs:
         
       - name: Extract source archive
       
-        run: unzip -q vtools-survey-ios-source-v2.zip -d source
+        run: unzip -q vtools-survey-ios-source-v3.zip -d source
         
       - name: Setup pnpm
       
