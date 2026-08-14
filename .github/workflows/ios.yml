@@ -2,7 +2,11 @@ name: Build vTools Survey IPA
 
 
 
+
+
+
 on:
+
 
   workflow_dispatch:
   
@@ -14,7 +18,10 @@ on:
       
 
 
+
+
 jobs:
+
 
   build-ipa:
   
@@ -28,7 +35,7 @@ jobs:
         
       - name: Extract source archive
       
-        run: unzip -q vtools-survey-ios-source-v3.zip -d source
+        run: unzip -q vtools-survey-ios-source-v4.zip -d source
         
       - name: Setup pnpm
       
@@ -148,55 +155,6 @@ jobs:
           
           retention-days: 7
           
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
