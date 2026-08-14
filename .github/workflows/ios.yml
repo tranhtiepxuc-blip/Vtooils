@@ -94,6 +94,16 @@ jobs:
         
 
 
+      - name: Inspect native project
+      
+        working-directory: source
+        
+        run: |
+        
+          find ios -maxdepth 2 -type f \( -name '*.xcworkspace' -o -name '*.xcodeproj' \) -print
+          
+
+
       - name: Build unsigned Release app
       
         working-directory: source
@@ -106,38 +116,8 @@ jobs:
           
           rm -rf build/DerivedData build/Release-iphoneos build/Payload
           
-          PROJECT_NAME="$(find ios -maxdepth 1 -type d -name '*.xcodeproj' -print -quit | xargs -I{} basename {} .xcodeproj)"
+          xcodebuild -workspace ios/vToolsSurveyiOS.xcworkspace -scheme vToolsSurveyiOS -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath build/DerivedData CONFIGURATION_BUILD_DIR="$PWD/build/Release-iphoneos" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY='' -parallelizeTargets NO -jobs 1 clean build
           
-          WORKSPACE="ios/${PROJECT_NAME}.xcworkspace"
-          
-          xcodebuild \
-          
-            -workspace "$WORKSPACE" \
-            
-            -scheme "$PROJECT_NAME" \
-            
-            -configuration Release \
-            
-            -sdk iphoneos \
-            
-            -destination 'generic/platform=iOS' \
-            
-            -derivedDataPath build/DerivedData \
-            
-            CONFIGURATION_BUILD_DIR="$PWD/build/Release-iphoneos" \
-            
-            CODE_SIGNING_ALLOWED=NO \
-            
-            CODE_SIGNING_REQUIRED=NO \
-            
-            CODE_SIGN_IDENTITY='' \
-            
-            -parallelizeTargets NO \
-            
-            -jobs 1 \
-            
-            clean build
-            
           APP_PATH="$(find build/Release-iphoneos -maxdepth 1 -type d -name '*.app' -print -quit)"
           
           test -n "$APP_PATH"
@@ -166,17 +146,6 @@ jobs:
           
           retention-days: 30
           
-
-
-
-
-
-
-
-
-
-
-
 
 
 
