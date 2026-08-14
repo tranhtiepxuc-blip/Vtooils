@@ -2,11 +2,7 @@ name: Build vTools Survey IPA
 
 
 
-
-
-
 on:
-
 
   workflow_dispatch:
   
@@ -18,10 +14,7 @@ on:
       
 
 
-
-
 jobs:
-
 
   build-ipa:
   
@@ -116,56 +109,6 @@ jobs:
           if-no-files-found: error
           
           retention-days: 30
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
