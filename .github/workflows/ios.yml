@@ -112,9 +112,9 @@ jobs:
         
           set -euo pipefail
           
-          rm -rf build/DerivedData build/Release-iphoneos build/Payload
+          rm -rf build/DerivedData build/Release-iphoneos build/Payload build/xcodebuild.log
           
-          xcodebuild -workspace ios/vToolsSurveyiOS.xcworkspace -scheme vToolsSurveyiOS -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath build/DerivedData CONFIGURATION_BUILD_DIR="$PWD/build/Release-iphoneos" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY='' -jobs 1 clean build
+          xcodebuild -workspace ios/vToolsSurveyiOS.xcworkspace -scheme vToolsSurveyiOS -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath build/DerivedData CONFIGURATION_BUILD_DIR="$PWD/build/Release-iphoneos" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY='' DEVELOPMENT_TEAM='' PROVISIONING_PROFILE_SPECIFIER='' CODE_SIGN_STYLE=Manual AD_HOC_CODE_SIGNING_ALLOWED=NO EXPANDED_CODE_SIGN_IDENTITY='' CODE_SIGNING_ENTITLEMENTS='' IPHONEOS_DEPLOYMENT_TARGET=17.0 IDEBuildOperationMaxNumberOfConcurrentCompileTasks=1 -jobs 1 clean build 2>&1 | tee build/xcodebuild.log
           
           APP_PATH="$(find build/Release-iphoneos -maxdepth 1 -type d -name '*.app' -print -quit)"
           
@@ -132,6 +132,8 @@ jobs:
 
       - name: Upload IPA artifact
       
+        if: success()
+        
         uses: actions/upload-artifact@v4
         
         with:
@@ -144,6 +146,33 @@ jobs:
           
           retention-days: 30
           
+
+
+      - name: Upload xcodebuild log
+      
+        if: always()
+        
+        uses: actions/upload-artifact@v4
+        
+        with:
+        
+          name: vtools-survey-ios-xcodebuild-log
+          
+          path: source/build/xcodebuild.log
+          
+          if-no-files-found: ignore
+          
+          retention-days: 30
+          
+
+
+
+
+
+
+
+
+
 
 
 
