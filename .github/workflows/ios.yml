@@ -2,11 +2,7 @@ name: Build vTools Survey IPA
 
 
 
-
-
-
 on:
-
 
   workflow_dispatch:
   
@@ -18,10 +14,7 @@ on:
       
 
 
-
-
 jobs:
-
 
   build-ipa:
   
@@ -35,14 +28,10 @@ jobs:
         
 
 
-
-
       - name: Extract source archive
       
         run: unzip -q vtools-survey-ios-source.zip -d source
         
-
-
 
 
       - name: Setup pnpm
@@ -53,8 +42,6 @@ jobs:
         
           version: 9.12.0
           
-
-
 
 
       - name: Setup Node
@@ -71,8 +58,6 @@ jobs:
           
 
 
-
-
       - name: Install dependencies
       
         working-directory: source
@@ -81,16 +66,12 @@ jobs:
         
 
 
-
-
       - name: Validate project
       
         working-directory: source
         
         run: pnpm check
         
-
-
 
 
       - name: Generate native iOS project
@@ -105,8 +86,6 @@ jobs:
         
 
 
-
-
       - name: Install CocoaPods
       
         working-directory: source
@@ -115,16 +94,12 @@ jobs:
         
 
 
-
-
       - name: Inspect native project
       
         working-directory: source
         
         run: find ios -maxdepth 2 -type f \( -name '*.xcworkspace' -o -name '*.xcodeproj' \) -print
         
-
-
 
 
       - name: Build unsigned Release app
@@ -137,14 +112,51 @@ jobs:
         
           set -euo pipefail
           
-          rm -rf build/DerivedData build/Release-iphoneos build/Payload build/xcodebuild.log
+          rm -rf build
+          
           mkdir -p build
           
-          xcodebuild -workspace ios/vToolsSurveyiOS.xcworkspace -scheme vToolsSurveyiOS -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath build/DerivedData CONFIGURATION_BUILD_DIR="$PWD/build/Release-iphoneos" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY='' DEVELOPMENT_TEAM='' PROVISIONING_PROFILE_SPECIFIER='' CODE_SIGN_STYLE=Manual AD_HOC_CODE_SIGNING_ALLOWED=NO EXPANDED_CODE_SIGN_IDENTITY='' CODE_SIGNING_ENTITLEMENTS='' IPHONEOS_DEPLOYMENT_TARGET=17.0 IDEBuildOperationMaxNumberOfConcurrentCompileTasks=1 -jobs 1 clean build 2>&1 | tee build/xcodebuild.log
+          xcodebuild \
           
-          APP_PATH="$(find build/Release-iphoneos -maxdepth 1 -type d -name '*.app' -print -quit)"
+            -workspace ios/vToolsSurveyiOS.xcworkspace \
+            
+            -scheme vToolsSurveyiOS \
+            
+            -configuration Release \
+            
+            -sdk iphoneos \
+            
+            -destination 'generic/platform=iOS' \
+            
+            -derivedDataPath build/DerivedData \
+            
+            CODE_SIGNING_ALLOWED=NO \
+            
+            CODE_SIGNING_REQUIRED=NO \
+            
+            CODE_SIGN_IDENTITY='' \
+            
+            DEVELOPMENT_TEAM='' \
+            
+            PROVISIONING_PROFILE_SPECIFIER='' \
+            
+            CODE_SIGN_STYLE=Manual \
+            
+            AD_HOC_CODE_SIGNING_ALLOWED=NO \
+            
+            EXPANDED_CODE_SIGN_IDENTITY='' \
+            
+            CODE_SIGNING_ENTITLEMENTS='' \
+            
+            IPHONEOS_DEPLOYMENT_TARGET=17.0 \
+            
+            clean build 2>&1 | tee build/xcodebuild.log
+            
+          APP_PATH="$(find build/DerivedData/Build/Products/Release-iphoneos -maxdepth 1 -type d -name '*.app' -print -quit)"
           
           test -n "$APP_PATH"
+          
+          rm -rf build/Payload
           
           mkdir -p build/Payload
           
@@ -154,8 +166,8 @@ jobs:
           
           test -s build/vtools-survey-ios.ipa
           
-
-
+          unzip -l build/vtools-survey-ios.ipa | head -30
+          
 
 
       - name: Upload IPA artifact
@@ -176,8 +188,6 @@ jobs:
           
 
 
-
-
       - name: Upload xcodebuild log
       
         if: always()
@@ -192,8 +202,13 @@ jobs:
           
           if-no-files-found: ignore
           
-          retention-days: 30
+          retention-days: 7
           
+
+
+
+
+
 
 
 
