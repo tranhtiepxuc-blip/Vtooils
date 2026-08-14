@@ -26,10 +26,14 @@ jobs:
       
         uses: actions/checkout@v4
         
+
+
       - name: Extract source archive
       
         run: unzip -q vtools-survey-ios-source.zip -d source
         
+
+
       - name: Setup pnpm
       
         uses: pnpm/action-setup@v4
@@ -38,6 +42,8 @@ jobs:
         
           version: 9.12.0
           
+
+
       - name: Setup Node
       
         uses: actions/setup-node@v4
@@ -50,30 +56,44 @@ jobs:
           
           cache-dependency-path: source/pnpm-lock.yaml
           
+
+
       - name: Install dependencies
       
         working-directory: source
         
         run: pnpm install --frozen-lockfile
         
+
+
       - name: Validate project
       
         working-directory: source
         
         run: pnpm check
         
+
+
       - name: Generate native iOS project
       
         working-directory: source
         
-        run: pnpm exec expo prebuild --platform ios --non-interactive --clean
+        env:
         
+          CI: '1'
+          
+        run: pnpm exec expo prebuild --platform ios --clean
+        
+
+
       - name: Install CocoaPods
       
         working-directory: source
         
-        run: pod install --project-directory=ios --deployment
+        run: pod install --project-directory=ios --repo-update
         
+
+
       - name: Build unsigned Release app
       
         working-directory: source
@@ -84,11 +104,43 @@ jobs:
         
           set -euo pipefail
           
+          rm -rf build/DerivedData build/Release-iphoneos build/Payload
+          
           PROJECT_NAME="$(find ios -maxdepth 1 -type d -name '*.xcodeproj' -print -quit | xargs -I{} basename {} .xcodeproj)"
           
-          xcodebuild -workspace "ios/${PROJECT_NAME}.xcworkspace" -scheme "$PROJECT_NAME" -configuration Release -sdk iphoneos -derivedDataPath build/DerivedData CONFIGURATION_BUILD_DIR="$PWD/build/Release-iphoneos" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" build
+          WORKSPACE="ios/${PROJECT_NAME}.xcworkspace"
           
+          xcodebuild \
+          
+            -workspace "$WORKSPACE" \
+            
+            -scheme "$PROJECT_NAME" \
+            
+            -configuration Release \
+            
+            -sdk iphoneos \
+            
+            -destination 'generic/platform=iOS' \
+            
+            -derivedDataPath build/DerivedData \
+            
+            CONFIGURATION_BUILD_DIR="$PWD/build/Release-iphoneos" \
+            
+            CODE_SIGNING_ALLOWED=NO \
+            
+            CODE_SIGNING_REQUIRED=NO \
+            
+            CODE_SIGN_IDENTITY='' \
+            
+            -parallelizeTargets NO \
+            
+            -jobs 1 \
+            
+            clean build
+            
           APP_PATH="$(find build/Release-iphoneos -maxdepth 1 -type d -name '*.app' -print -quit)"
+          
+          test -n "$APP_PATH"
           
           mkdir -p build/Payload
           
@@ -96,6 +148,10 @@ jobs:
           
           /usr/bin/ditto -c -k --sequesterRsrc --keepParent build/Payload build/vtools-survey-ios.ipa
           
+          test -s build/vtools-survey-ios.ipa
+          
+
+
       - name: Upload IPA artifact
       
         uses: actions/upload-artifact@v4
@@ -109,6 +165,28 @@ jobs:
           if-no-files-found: error
           
           retention-days: 30
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
