@@ -1,1 +1,160 @@
+name: Build vTools Survey IPA
+
+
+
+on:
+
+  workflow_dispatch:
+  
+  push:
+  
+    tags:
+    
+      - 'v*'
+      
+
+
+jobs:
+
+  build-ipa:
+  
+    runs-on: macos-14
+    
+    steps:
+    
+      - name: Checkout
+      
+        uses: actions/checkout@v4
+        
+      - name: Extract source archive
+      
+        run: unzip -q vtools-survey-ios-source.zip -d source
+        
+      - name: Setup pnpm
+      
+        uses: pnpm/action-setup@v4
+        
+        with:
+        
+          version: 9.12.0
+          
+      - name: Setup Node
+      
+        uses: actions/setup-node@v4
+        
+        with:
+        
+          node-version: 22
+          
+          cache: pnpm
+          
+          cache-dependency-path: source/pnpm-lock.yaml
+          
+      - name: Install dependencies
+      
+        working-directory: source
+        
+        run: pnpm install --frozen-lockfile
+        
+      - name: Validate project
+      
+        working-directory: source
+        
+        run: pnpm check
+        
+      - name: Generate native iOS project
+      
+        working-directory: source
+        
+        run: pnpm exec expo prebuild --platform ios --non-interactive --clean
+        
+      - name: Install CocoaPods
+      
+        working-directory: source
+        
+        run: pod install --project-directory=ios --deployment
+        
+      - name: Build unsigned Release app
+      
+        working-directory: source
+        
+        shell: bash
+        
+        run: |
+        
+          set -euo pipefail
+          
+          PROJECT_NAME="$(find ios -maxdepth 1 -type d -name '*.xcodeproj' -print -quit | xargs -I{} basename {} .xcodeproj)"
+          
+          xcodebuild -workspace "ios/${PROJECT_NAME}.xcworkspace" -scheme "$PROJECT_NAME" -configuration Release -sdk iphoneos -derivedDataPath build/DerivedData CONFIGURATION_BUILD_DIR="$PWD/build/Release-iphoneos" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" build
+          
+          APP_PATH="$(find build/Release-iphoneos -maxdepth 1 -type d -name '*.app' -print -quit)"
+          
+          mkdir -p build/Payload
+          
+          cp -R "$APP_PATH" build/Payload/
+          
+          /usr/bin/ditto -c -k --sequesterRsrc --keepParent build/Payload build/vtools-survey-ios.ipa
+          
+      - name: Upload IPA artifact
+      
+        uses: actions/upload-artifact@v4
+        
+        with:
+        
+          name: vtools-survey-ios-trollstore
+          
+          path: source/build/vtools-survey-ios.ipa
+          
+          if-no-files-found: error
+          
+          retention-days: 30
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
